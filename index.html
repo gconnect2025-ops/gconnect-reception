@@ -2,23 +2,75 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>G-Connect セルフ受付システム</title>
+  <title>G-CONNECT セルフ受付システム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h1 { font-size: 24px; margin-bottom: 20px; }
-    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+    /* 画面全体を上下左右の中央揃えにする設定 */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7f6;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      align-items: center;      /* 上下の中央揃え */
+      justify-content: center;  /* 左右の中央揃え */
+      box-sizing: border-box;
+      padding: 20px;
+    }
+    
+    /* 真ん中に配置される白いカードのボックス */
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      box-sizing: border-box;
+    }
+    
+    h1 { font-size: 26px; margin-top: 0; margin-bottom: 20px; }
+    p { font-size: 16px; line-height: 1.5; color: #555; }
+    
+    button { 
+      width: 100%; 
+      padding: 16px; 
+      font-size: 18px; 
+      font-weight: bold; 
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      margin-top: 20px; 
+      transition: background-color 0.2s; 
+    }
     .btn-main { background-color: #007bff; color: white; }
     .btn-success { background-color: #28a745; color: white; }
     .btn-danger { background-color: #dc3545; color: white; }
+    
     .step-panel { display: none; }
     .step-panel.active { display: block; }
-    #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 8px; overflow: hidden; background-color: #eee; }
-    .company-display { font-size: 20px; color: #666; margin-top: 20px; font-weight: bold; }
-    .name-display { font-size: 32px; font-weight: bold; margin: 10px 0 25px 0; color: #0056b3; }
-    .table-display { font-size: 48px; font-weight: bold; margin: 20px 0; color: #d9534f; }
-    .loading { font-size: 18px; color: #666; font-style: italic; }
+    
+    /* カメラ映像の表示エリア */
+    #reader { 
+      width: 100%; 
+      max-width: 400px; 
+      margin: 20px auto; 
+      border-radius: 12px; 
+      overflow: hidden; 
+      background-color: #eee; 
+    }
+    
+    .company-display { font-size: 22px; color: #666; margin-top: 25px; font-weight: bold; }
+    .name-display { font-size: 36px; font-weight: bold; margin: 10px 0 30px 0; color: #0056b3; }
+    
+    /* 感謝メッセージのデザイン */
+    .thanks-message { font-size: 20px; font-weight: bold; color: #28a745; margin: 15px 0; line-height: 1.6; }
+    
+    .table-display { font-size: 54px; font-weight: bold; margin: 20px 0; color: #d9534f; }
+    .loading { font-size: 18px; color: #666; font-style: italic; margin-top: 20px; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -28,7 +80,7 @@
   
   <!-- ステップ1: 初期画面 -->
   <div id="step-start" class="step-panel active">
-    <h1>G-Connect セルフ受付</h1>
+    <h1>G-CONNECT セルフ受付</h1>
     <p>下のボタンを押して、QRコードをかざしてください。</p>
     <button class="btn-main" onclick="startScan()">受付を開始する</button>
   </div>
@@ -50,16 +102,17 @@
     <button class="btn-danger" onclick="stopScanAndReset()">やり直す</button>
   </div>
 
-  <!-- ステップ4: テーブル案内画面 -->
+  <!-- ステップ4: テーブル案内＆感謝画面（メッセージを追加！） -->
   <div id="step-result" class="step-panel">
     <h1>受付が完了しました！</h1>
+    <div class="thanks-message">本日はお越しいただきまして<br>ありがとうございます！</div>
     <p>あなたのテーブルは</p>
     <div id="table-area" class="table-display"></div>
     <p>です。その場でスタッフへお会計をお願いします。</p>
     <button class="btn-main" onclick="resetSystem()">次の人へ</button>
   </div>
   
-  <div id="loading" class="loading" style="display:none; margin-top:20px;">通信中...</div>
+  <div id="loading" class="loading" style="display:none;">通信中...</div>
 
 </div>
 
@@ -96,7 +149,6 @@
         currentQrData = decodedText;
         document.getElementById('loading').style.display = 'block';
         
-        // GASへAPI通信を行う
         fetch(GAS_WEBAPP_URL, {
           method: "POST",
           body: JSON.stringify({ method: "findMember", qrData: currentQrData })
@@ -125,7 +177,6 @@
   function confirmIdentity() {
     document.getElementById('loading').style.display = 'block';
     
-    // GASへ確定データを送信する
     fetch(GAS_WEBAPP_URL, {
       method: "POST",
       body: JSON.stringify({
