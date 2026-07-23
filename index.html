@@ -5,7 +5,6 @@
   <title>G-CONNECT セルフ受付システム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* 画面全体を上下左右の中央揃えにする設定 */
     html, body {
       height: 100%;
       margin: 0;
@@ -15,13 +14,11 @@
     }
     body {
       display: flex;
-      align-items: center;      /* 上下の中央揃え */
-      justify-content: center;  /* 左右の中央揃え */
+      align-items: center;
+      justify-content: center;
       box-sizing: border-box;
       padding: 20px;
     }
-    
-    /* 真ん中に配置される白いカードのボックス */
     .container {
       width: 100%;
       max-width: 500px;
@@ -30,11 +27,10 @@
       border-radius: 16px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
       box-sizing: border-box;
+      text-align: center;
     }
-    
     h1 { font-size: 26px; margin-top: 0; margin-bottom: 20px; }
     p { font-size: 16px; line-height: 1.5; color: #555; }
-    
     button { 
       width: 100%; 
       padding: 16px; 
@@ -49,11 +45,8 @@
     .btn-main { background-color: #007bff; color: white; }
     .btn-success { background-color: #28a745; color: white; }
     .btn-danger { background-color: #dc3545; color: white; }
-    
     .step-panel { display: none; }
     .step-panel.active { display: block; }
-    
-    /* カメラ映像の表示エリア */
     #reader { 
       width: 100%; 
       max-width: 400px; 
@@ -62,13 +55,9 @@
       overflow: hidden; 
       background-color: #eee; 
     }
-    
     .company-display { font-size: 22px; color: #666; margin-top: 25px; font-weight: bold; }
     .name-display { font-size: 36px; font-weight: bold; margin: 10px 0 30px 0; color: #0056b3; }
-    
-    /* 感謝メッセージのデザイン */
     .thanks-message { font-size: 20px; font-weight: bold; color: #28a745; margin: 15px 0; line-height: 1.6; }
-    
     .table-display { font-size: 54px; font-weight: bold; margin: 20px 0; color: #d9534f; }
     .loading { font-size: 18px; color: #666; font-style: italic; margin-top: 20px; }
   </style>
@@ -102,7 +91,7 @@
     <button class="btn-danger" onclick="stopScanAndReset()">やり直す</button>
   </div>
 
-  <!-- ステップ4: テーブル案内＆感謝画面（メッセージを追加！） -->
+  <!-- ステップ4: テーブル案内＆感謝画面 -->
   <div id="step-result" class="step-panel">
     <h1>受付が完了しました！</h1>
     <div class="thanks-message">本日はお越しいただきまして<br>ありがとうございます！</div>
@@ -124,6 +113,7 @@
   let currentQrData = "";
   let currentCompany = "";
   let currentMemberName = "";
+  let autoResetTimer = null; // タイマー管理用変数
 
   function changeStep(stepId) {
     document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
@@ -131,6 +121,7 @@
   }
 
   function startScan() {
+    clearTimeout(autoResetTimer); // タイマー破棄
     changeStep('step-scan');
     html5QrcodeScanner = new Html5Qrcode("reader");
     html5QrcodeScanner.start(
@@ -197,11 +188,11 @@
       document.getElementById('table-area').innerText = result.table + " テーブル";
       changeStep('step-result');
       
-      setTimeout(() => {
-        if(document.getElementById('step-result').classList.contains('active')){
-          resetSystem();
-        }
-      }, 7000);
+      // 既存のタイマーがあればクリアして新しく設定
+      clearTimeout(autoResetTimer);
+      autoResetTimer = setTimeout(() => {
+        resetSystem();
+      }, 10000); // 10秒間操作がない場合のみ自動リセット
     } else {
       alert(result.message);
       resetSystem();
@@ -223,6 +214,7 @@
   }
 
   function resetSystem() {
+    clearTimeout(autoResetTimer); // タイマーを完全に破棄
     currentQrData = "";
     currentCompany = "";
     currentMemberName = "";
