@@ -8,6 +8,7 @@
     .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     h1 { font-size: 24px; margin-bottom: 20px; }
     button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+    button:disabled { cursor: not-allowed; }
     .btn-main { background-color: #007bff; color: white; }
     .btn-success { background-color: #28a745; color: white; }
     .btn-danger { background-color: #dc3545; color: white; }
@@ -63,14 +64,14 @@
 </div>
 
 <script>
-  // ★ここにご自身のGASウェブアプリURLを入れてください
+  // ★ご自身のGASウェブアプリURLを指定
   var GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzywpREq_W8Z9wSZVa2mNJV98Vepd8uK9-oDS4Z6NaxSKcotmk50BBbrtyJd6eKPE9WhA/exec";
 
   let html5QrcodeScanner = null;
   let currentQrData = "";
   let currentCompany = "";
   let currentMemberName = "";
-  let isProcessing = false; // ★連続読み取り（2回読み込み）防止用のロックフラグ
+  let isProcessing = false; // 2重処理（読み取り・ボタン連打）防止用のフラグ
 
   function changeStep(stepId) {
     document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
@@ -78,7 +79,7 @@
   }
 
   function startScan() {
-    isProcessing = false; // フラグ解除
+    isProcessing = false;
     changeStep('step-scan');
     
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -101,13 +102,11 @@
       });
   }
 
-  // ★連続読み取りを防ぐ安全なスキャン成功処理
+  // 連続読み取り防止つきスキャン処理
   function onScanSuccess(decodedText, decodedResult) {
-    // すでにスキャン処理中の場合は2回目の割り込みを即座にブロック
     if (isProcessing) return;
     isProcessing = true; 
 
-    // カメラの読み取りを停止
     if (html5QrcodeScanner) {
       html5QrcodeScanner.stop().then(() => {
         processQr(decodedText);
@@ -123,7 +122,6 @@
     currentQrData = decodedText;
     document.getElementById('loading').style.display = 'block';
 
-    // GASへ通信
     fetch(GAS_WEBAPP_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -151,10 +149,20 @@
     }
   }
 
+  // 確定ボタンの連打防止つき受付確定処理
   function confirmIdentity() {
+    if (isProcessing) return;
+    isProcessing = true;
+
+    // 「はい」ボタンを非有効化（連打ガード）
+    const confirmBtn = document.querySelector('#step-confirm .btn-success');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.style.opacity = '0.5';
+    }
+
     document.getElementById('loading').style.display = 'block';
     
-    // GASへ確定データを送信
     fetch(GAS_WEBAPP_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -206,6 +214,14 @@
     currentCompany = "";
     currentMemberName = "";
     document.getElementById('loading').style.display = 'none';
+
+    // 確定ボタンの無効化を解除
+    const confirmBtn = document.querySelector('#step-confirm .btn-success');
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = '1';
+    }
+
     changeStep('step-start');
   }
 </script>
