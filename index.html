@@ -1,77 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <base target="_top">
   <meta charset="UTF-8">
-  <title>G-CONNECT セルフ受付システム</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* 画面全体を上下左右の中央揃えにする設定 */
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f7f6;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
-    body {
-      display: flex;
-      align-items: center;      /* 上下の中央揃え */
-      justify-content: center;  /* 左右の中央揃え */
-      box-sizing: border-box;
-      padding: 20px;
-    }
-    
-    /* 真ん中に配置される白いカードのボックス（内部の文字も中央揃えに） */
-    .container {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      padding: 40px 30px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      box-sizing: border-box;
-      text-align: center; /* ★カード内のすべての文字・要素を中央揃えにする設定 */
-    }
-    
-    h1 { font-size: 26px; margin-top: 0; margin-bottom: 20px; text-align: center; }
-    p { font-size: 16px; line-height: 1.5; color: #555; text-align: center; }
-    
-    button { 
-      width: 100%; 
-      padding: 16px; 
-      font-size: 18px; 
-      font-weight: bold; 
-      border: none; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      margin-top: 20px; 
-      transition: background-color 0.2s; 
-    }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h1 { font-size: 24px; margin-bottom: 20px; }
+    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: 0.2s; }
     .btn-main { background-color: #007bff; color: white; }
     .btn-success { background-color: #28a745; color: white; }
     .btn-danger { background-color: #dc3545; color: white; }
-    
-    .step-panel { display: none; text-align: center; }
+    .step-panel { display: none; }
     .step-panel.active { display: block; }
-    
-    /* カメラ映像の表示エリア */
-    #reader { 
-      width: 100%; 
-      max-width: 400px; 
-      margin: 20px auto; 
-      border-radius: 12px; 
-      overflow: hidden; 
-      background-color: #eee; 
-    }
-    
-    .company-display { font-size: 22px; color: #666; margin-top: 25px; font-weight: bold; text-align: center; }
-    .name-display { font-size: 36px; font-weight: bold; margin: 10px 0 30px 0; color: #0056b3; text-align: center; }
-    
-    /* 感謝メッセージのデザイン */
-    .thanks-message { font-size: 20px; font-weight: bold; color: #28a745; margin: 15px 0; line-height: 1.6; text-align: center; }
-    
-    .table-display { font-size: 54px; font-weight: bold; margin: 20px 0; color: #d9534f; text-align: center; }
-    .loading { font-size: 18px; color: #666; font-style: italic; margin-top: 20px; text-align: center; }
+    #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 8px; overflow: hidden; background-color: #eee; }
+    .company-display { font-size: 20px; color: #666; margin-top: 20px; font-weight: bold; }
+    .name-display { font-size: 32px; font-weight: bold; margin: 10px 0 25px 0; color: #0056b3; }
+    .table-display { font-size: 48px; font-weight: bold; margin: 20px 0; color: #d9534f; }
+    .loading { font-size: 18px; color: #666; font-style: italic; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -81,7 +27,7 @@
   
   <!-- ステップ1: 初期画面 -->
   <div id="step-start" class="step-panel active">
-    <h1>G-CONNECT セルフ受付</h1>
+    <h1>G-Connect セルフ受付</h1>
     <p>下のボタンを押して、QRコードをかざしてください。</p>
     <button class="btn-main" onclick="startScan()">受付を開始する</button>
   </div>
@@ -103,29 +49,28 @@
     <button class="btn-danger" onclick="stopScanAndReset()">やり直す</button>
   </div>
 
-  <!-- ステップ4: テーブル案内＆感謝画面 -->
+  <!-- ステップ4: テーブル案内画面 -->
   <div id="step-result" class="step-panel">
     <h1>受付が完了しました！</h1>
-    <div class="thanks-message">本日はお越しいただきまして<br>ありがとうございます！</div>
     <p>あなたのテーブルは</p>
     <div id="table-area" class="table-display"></div>
     <p>です。その場でスタッフへお会計をお願いします。</p>
     <button class="btn-main" onclick="resetSystem()">次の人へ</button>
   </div>
   
-  <div id="loading" class="loading" style="display:none;">通信中...</div>
+  <div id="loading" class="loading" style="display:none; margin-top:20px;">通信中...</div>
 
 </div>
 
 <script>
-  // ⚠️ あなたのGASウェブアプリURLに書き換えてください
+  // ★ここにご自身のGASウェブアプリURLを入れてください
   var GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzywpREq_W8Z9wSZVa2mNJV98Vepd8uK9-oDS4Z6NaxSKcotmk50BBbrtyJd6eKPE9WhA/exec";
 
   let html5QrcodeScanner = null;
   let currentQrData = "";
   let currentCompany = "";
   let currentMemberName = "";
-  let autoResetTimer = null; // タイマー管理用変数
+  let isProcessing = false; // ★連続読み取り（2回読み込み）防止用のロックフラグ
 
   function changeStep(stepId) {
     document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
@@ -133,34 +78,62 @@
   }
 
   function startScan() {
-    clearTimeout(autoResetTimer); // タイマー破棄
+    isProcessing = false; // フラグ解除
     changeStep('step-scan');
-    html5QrcodeScanner = new Html5Qrcode("reader");
-    html5QrcodeScanner.start(
-      { facingMode: "user" }, 
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      onScanSuccess
-    ).catch(err => {
-      alert("カメラの起動に失敗しました: " + err);
-      resetSystem();
-    });
+    
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(function(stream) {
+        stream.getTracks().forEach(track => track.stop());
+        
+        html5QrcodeScanner = new Html5Qrcode("reader");
+        html5QrcodeScanner.start(
+          { facingMode: "environment" }, 
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          onScanSuccess
+        ).catch(err => {
+          alert("カメラの起動に失敗しました: " + err);
+          resetSystem();
+        });
+      })
+      .catch(function(err) {
+        alert("ブラウザのカメラアクセスが許可されていません。\nエラー詳細: " + err.name);
+        resetSystem();
+      });
   }
 
+  // ★連続読み取りを防ぐ安全なスキャン成功処理
   function onScanSuccess(decodedText, decodedResult) {
-    if(html5QrcodeScanner) {
+    // すでにスキャン処理中の場合は2回目の割り込みを即座にブロック
+    if (isProcessing) return;
+    isProcessing = true; 
+
+    // カメラの読み取りを停止
+    if (html5QrcodeScanner) {
       html5QrcodeScanner.stop().then(() => {
-        currentQrData = decodedText;
-        document.getElementById('loading').style.display = 'block';
-        
-        fetch(GAS_WEBAPP_URL, {
-          method: "POST",
-          body: JSON.stringify({ method: "findMember", qrData: currentQrData })
-        })
-        .then(res => res.json())
-        .then(onFindMemberSuccess)
-        .catch(onApiError);
+        processQr(decodedText);
+      }).catch(err => {
+        processQr(decodedText);
       });
+    } else {
+      processQr(decodedText);
     }
+  }
+
+  function processQr(decodedText) {
+    currentQrData = decodedText;
+    document.getElementById('loading').style.display = 'block';
+
+    // GASへ通信
+    fetch(GAS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        method: "findMember",
+        qrData: currentQrData
+      })
+    })
+    .then(response => response.json())
+    .then(data => onFindMemberSuccess(data))
+    .catch(error => onApiError(error));
   }
 
   function onFindMemberSuccess(result) {
@@ -168,6 +141,7 @@
     if (result.success) {
       currentCompany = result.company;
       currentMemberName = result.name;
+      
       document.getElementById('company-area').innerText = currentCompany;
       document.getElementById('name-area').innerText = currentMemberName + " 様";
       changeStep('step-confirm');
@@ -180,6 +154,7 @@
   function confirmIdentity() {
     document.getElementById('loading').style.display = 'block';
     
+    // GASへ確定データを送信
     fetch(GAS_WEBAPP_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -189,9 +164,9 @@
         name: currentMemberName
       })
     })
-    .then(res => res.json())
-    .then(onConfirmSuccess)
-    .catch(onApiError);
+    .then(response => response.json())
+    .then(data => onConfirmSuccess(data))
+    .catch(error => onApiError(error));
   }
 
   function onConfirmSuccess(result) {
@@ -200,11 +175,11 @@
       document.getElementById('table-area').innerText = result.table + " テーブル";
       changeStep('step-result');
       
-      // 既存のタイマーがあればクリアして新しく設定
-      clearTimeout(autoResetTimer);
-      autoResetTimer = setTimeout(() => {
-        resetSystem();
-      }, 10000); // 10秒間操作がない場合のみ自動リセット
+      setTimeout(() => {
+        if(document.getElementById('step-result').classList.contains('active')){
+          resetSystem();
+        }
+      }, 7000);
     } else {
       alert(result.message);
       resetSystem();
@@ -213,12 +188,12 @@
 
   function onApiError(error) {
     document.getElementById('loading').style.display = 'none';
-    alert("通信エラーが発生しました: " + error.message);
+    alert("通信エラーが発生しました: " + (error.message || error));
     resetSystem();
   }
 
   function stopScanAndReset() {
-    if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+    if (html5QrcodeScanner) {
       html5QrcodeScanner.stop().then(() => { resetSystem(); }).catch(() => { resetSystem(); });
     } else {
       resetSystem();
@@ -226,7 +201,7 @@
   }
 
   function resetSystem() {
-    clearTimeout(autoResetTimer); // タイマーを完全に破棄
+    isProcessing = false;
     currentQrData = "";
     currentCompany = "";
     currentMemberName = "";
