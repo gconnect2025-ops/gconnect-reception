@@ -64,7 +64,7 @@
 </div>
 
 <script>
-  // ★ご自身のGASウェブアプリURLを指定
+  // お送りいただいたGASウェブアプリURLを設定
   var GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzywpREq_W8Z9wSZVa2mNJV98Vepd8uK9-oDS4Z6NaxSKcotmk50BBbrtyJd6eKPE9WhA/exec";
 
   let html5QrcodeScanner = null;
@@ -82,14 +82,11 @@
     isProcessing = false;
     changeStep('step-scan');
     
-    // インカメラ（前面カメラ）を優先的に取得
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
       .then(function(stream) {
         stream.getTracks().forEach(track => track.stop());
         
         html5QrcodeScanner = new Html5Qrcode("reader");
-        
-        // カメラ設定：前面（イン）カメラを指定
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
         
         html5QrcodeScanner.start(
@@ -97,7 +94,6 @@
           config,
           onScanSuccess
         ).catch(err => {
-          // サポートされていない場合のフォールバック（カメラ指定なし起動）
           html5QrcodeScanner.start({ facingMode: { exact: "user" } }, config, onScanSuccess)
             .catch(e => {
               alert("カメラの起動に失敗しました: " + e);
@@ -132,6 +128,7 @@
 
     fetch(GAS_WEBAPP_URL, {
       method: "POST",
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
         method: "findMember",
         qrData: currentQrData
@@ -144,6 +141,8 @@
 
   function onFindMemberSuccess(result) {
     document.getElementById('loading').style.display = 'none';
+    isProcessing = false; // 次のボタン操作のため一旦解除
+    
     if (result.success) {
       currentCompany = result.company;
       currentMemberName = result.name;
@@ -171,6 +170,7 @@
     
     fetch(GAS_WEBAPP_URL, {
       method: "POST",
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({
         method: "confirmRegistration",
         qrData: currentQrData,
@@ -195,7 +195,7 @@
         }
       }, 7000);
     } else {
-      alert(result.message);
+      alert("受付処理エラー: " + result.message);
       resetSystem();
     }
   }
