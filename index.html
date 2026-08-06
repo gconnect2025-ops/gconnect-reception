@@ -28,7 +28,7 @@
   
   <!-- ステップ1: 初期画面 -->
   <div id="step-start" class="step-panel active">
-    <h1>G-Connect セルフ受付</h1>
+    <h1>G-CONNECT セルフ受付</h1>
     <p>下のボタンを押して、QRコードをかざしてください。</p>
     <button class="btn-main" onclick="startScan()">受付を開始する</button>
   </div>
@@ -71,7 +71,7 @@
   let currentQrData = "";
   let currentCompany = "";
   let currentMemberName = "";
-  let isProcessing = false; // 2重処理（読み取り・ボタン連打）防止用のフラグ
+  let isProcessing = false;
 
   function changeStep(stepId) {
     document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
@@ -82,18 +82,27 @@
     isProcessing = false;
     changeStep('step-scan');
     
-    navigator.mediaDevices.getUserMedia({ video: true })
+    // インカメラ（前面カメラ）を優先的に取得
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
       .then(function(stream) {
         stream.getTracks().forEach(track => track.stop());
         
         html5QrcodeScanner = new Html5Qrcode("reader");
+        
+        // カメラ設定：前面（イン）カメラを指定
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        
         html5QrcodeScanner.start(
-          { facingMode: "environment" }, 
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { facingMode: "user" }, 
+          config,
           onScanSuccess
         ).catch(err => {
-          alert("カメラの起動に失敗しました: " + err);
-          resetSystem();
+          // サポートされていない場合のフォールバック（カメラ指定なし起動）
+          html5QrcodeScanner.start({ facingMode: { exact: "user" } }, config, onScanSuccess)
+            .catch(e => {
+              alert("カメラの起動に失敗しました: " + e);
+              resetSystem();
+            });
         });
       })
       .catch(function(err) {
@@ -102,7 +111,6 @@
       });
   }
 
-  // 連続読み取り防止つきスキャン処理
   function onScanSuccess(decodedText, decodedResult) {
     if (isProcessing) return;
     isProcessing = true; 
@@ -149,12 +157,10 @@
     }
   }
 
-  // 確定ボタンの連打防止つき受付確定処理
   function confirmIdentity() {
     if (isProcessing) return;
     isProcessing = true;
 
-    // 「はい」ボタンを非有効化（連打ガード）
     const confirmBtn = document.querySelector('#step-confirm .btn-success');
     if (confirmBtn) {
       confirmBtn.disabled = true;
@@ -215,7 +221,6 @@
     currentMemberName = "";
     document.getElementById('loading').style.display = 'none';
 
-    // 確定ボタンの無効化を解除
     const confirmBtn = document.querySelector('#step-confirm .btn-success');
     if (confirmBtn) {
       confirmBtn.disabled = false;
