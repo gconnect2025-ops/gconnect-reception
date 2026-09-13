@@ -16,7 +16,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      min-height: 100vh; /* 画面の中央に配置 */
+      min-height: 100vh;
     }
     
     .container {
@@ -29,7 +29,6 @@
       text-align: center;
     }
     
-    /* ロゴマークエリア */
     .logo-area {
       margin-bottom: 25px;
     }
@@ -52,6 +51,13 @@
       color: #666;
       margin-bottom: 25px;
       line-height: 1.5;
+    }
+
+    .greeting-message {
+      font-size: 18px;
+      font-weight: bold;
+      color: #28a745;
+      margin-bottom: 10px;
     }
 
     button {
@@ -85,8 +91,8 @@
       background-color: #eee;
     }
     
-    .company-display { font-size: 20px; color: #555; margin-top: 20px; font-weight: bold; }
-    .name-display { font-size: 32px; font-weight: bold; margin: 10px 0 25px 0; color: #0056b3; }
+    .company-display { font-size: 20px; color: #555; margin-top: 15px; font-weight: bold; }
+    .name-display { font-size: 30px; font-weight: bold; margin: 10px 0 25px 0; color: #0056b3; }
     .table-display { font-size: 52px; font-weight: bold; margin: 20px 0; color: #d9534f; }
     .loading { font-size: 18px; color: #666; font-style: italic; }
   </style>
@@ -96,7 +102,6 @@
 
 <div class="container">
   
-  <!-- ロゴマークエリア（画像がない場合は非表示になります） -->
   <div class="logo-area">
     <img src="logo.png" alt="G-CONNECT" onerror="this.style.display='none'">
   </div>
@@ -115,10 +120,10 @@
     <button class="btn-danger" onclick="stopScanAndReset()">キャンセル</button>
   </div>
 
-  <!-- ステップ3: お名前・会社名確認画面 -->
+  <!-- ステップ3: お名前・会社名確認画面（メッセージ可変） -->
   <div id="step-confirm" class="step-panel">
-    <h1>情報の確認</h1>
-    <p>ご本人様でお間違いないですか？</p>
+    <div id="greeting-area" class="greeting-message"></div>
+    <p id="confirm-sub-text">ご本人様でお間違いないですか？</p>
     <div id="company-area" class="company-display"></div>
     <div id="name-area" class="name-display"></div>
     <button class="btn-success" onclick="confirmIdentity()">はい（受付確定）</button>
@@ -139,7 +144,7 @@
 </div>
 
 <script>
-  // お送りいただいたGASウェブアプリURLを設定
+  // ★ご自身のGASウェブアプリURLを指定
   var GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzywpREq_W8Z9wSZVa2mNJV98Vepd8uK9-oDS4Z6NaxSKcotmk50BBbrtyJd6eKPE9WhA/exec";
 
   let html5QrcodeScanner = null;
@@ -214,16 +219,25 @@
     .catch(error => onApiError(error));
   }
 
+  // ★会員/ゲストでメッセージを分岐
   function onFindMemberSuccess(result) {
     document.getElementById('loading').style.display = 'none';
-    isProcessing = false; // 次のボタン操作のため一旦解除
+    isProcessing = false;
     
     if (result.success) {
       currentCompany = result.company;
       currentMemberName = result.name;
       
       document.getElementById('company-area').innerText = currentCompany;
-      document.getElementById('name-area').innerText = currentMemberName + " 様";
+      
+      if (result.isGuest) {
+        document.getElementById('greeting-area').innerText = "初めまして！本日はご参加ありがとうございます。";
+        document.getElementById('name-area').innerText = currentMemberName + " 様（ゲスト）";
+      } else {
+        document.getElementById('greeting-area').innerText = "いつもご参加ありがとうございます！";
+        document.getElementById('name-area').innerText = currentMemberName + " 様（会員）";
+      }
+      
       changeStep('step-confirm');
     } else {
       alert(result.message);
