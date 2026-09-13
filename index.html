@@ -3,21 +3,91 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h1 { font-size: 24px; margin-bottom: 20px; }
-    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f7f6;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* 画面の中央に配置 */
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    
+    /* ロゴマークエリア */
+    .logo-area {
+      margin-bottom: 25px;
+    }
+    .logo-area img {
+      max-width: 180px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 0 0 15px 0;
+      color: #111;
+    }
+    
+    p {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
     button:disabled { cursor: not-allowed; }
     .btn-main { background-color: #007bff; color: white; }
+    .btn-main:active { background-color: #0056b3; }
     .btn-success { background-color: #28a745; color: white; }
+    .btn-success:active { background-color: #1e7e34; }
     .btn-danger { background-color: #dc3545; color: white; }
+    .btn-danger:active { background-color: #bd2130; }
+    
     .step-panel { display: none; }
     .step-panel.active { display: block; }
-    #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 8px; overflow: hidden; background-color: #eee; }
-    .company-display { font-size: 20px; color: #666; margin-top: 20px; font-weight: bold; }
+    
+    #reader {
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #eee;
+    }
+    
+    .company-display { font-size: 20px; color: #555; margin-top: 20px; font-weight: bold; }
     .name-display { font-size: 32px; font-weight: bold; margin: 10px 0 25px 0; color: #0056b3; }
-    .table-display { font-size: 48px; font-weight: bold; margin: 20px 0; color: #d9534f; }
+    .table-display { font-size: 52px; font-weight: bold; margin: 20px 0; color: #d9534f; }
     .loading { font-size: 18px; color: #666; font-style: italic; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -26,10 +96,15 @@
 
 <div class="container">
   
+  <!-- ロゴマークエリア（画像がない場合は非表示になります） -->
+  <div class="logo-area">
+    <img src="logo.png" alt="G-CONNECT" onerror="this.style.display='none'">
+  </div>
+
   <!-- ステップ1: 初期画面 -->
   <div id="step-start" class="step-panel active">
     <h1>G-CONNECT セルフ受付</h1>
-    <p>下のボタンを押して、QRコードをかざしてください。</p>
+    <p>下のボタンを押して、<br>QRコードをかざしてください。</p>
     <button class="btn-main" onclick="startScan()">受付を開始する</button>
   </div>
 
